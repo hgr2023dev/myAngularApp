@@ -1,37 +1,78 @@
-.tp-container {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: #eee;
-}
-.tp-section {
-  display: flex;
-  align-content: center;
-  align-items: center;
-  height: 60px;
-  width: 100px;
-}
-.CompanyText {
-  font-family: Lato;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 15px;
-  letter-spacing: 0px;
-  text-align: left;
-  color: #3157a3;
-  width: 114px;
-  height: 15px;
-}
-.float-left {
-  float: left !important;
-}
-.logo.float-left img {
-  zoom: 0.9;
-}
-a {
-  color: #007bff;
-  text-decoration: none;
-  background-color: transparent;
-}
+<!--**********************************
+        Main wrapper start
+    ***********************************-->
+<div
+  id="main-wrapper"
+  [ngClass]="{ 'menu-toggle': toggle }"
+  class="tp-container"
+>
+  <!--**********************************
+          Nav header start
+      ***********************************-->
+  <div class="nav-header">
+    <div class="row">
+      <div
+        class="col-5"
+        style="text-align: center; vertical-align: text-top; padding-top: 30px"
+      >
+        <div class="logo">
+          <a class="" href="#">
+            <img
+              src="assets/img/logot.png"
+              alt="logo"
+              class="img-fluid logo-abbr"
+              style="width: 40%; height: 40%"
+          /></a>
+        </div>
+      </div>
+      <div
+        class="col-7"
+        style="padding-top: 48px; text-align: left; padding-left: 0"
+      >
+        <span class="brand-title CompanyText" style="margin-left: 0"
+          >Manpower Planning</span
+        >
+      </div>
+    </div>
+
+    <!-- <i class="logo-abbr fa-brands fa-stumbleupon"></i>
+      <h2 class="brand-title">JFL</h2> -->
+    <!-- <a href="#" class="brand-logo">
+
+      <img
+        src="assets/img/logo.png"
+        class="img-fluid"
+        alt=""
+        style="width: 35.4px; height: 25.67px"
+      />
+
+      <span class="nav-text CompanyText">| Manpower Planning</span>
+    </a> -->
+    <div class="nav-control" (click)="toggleMenu()">
+      <div class="hamburger" [ngClass]="{ 'is-active': toggle }">
+        <span class="line"></span><span class="line"></span
+        ><span class="line"></span>
+      </div>
+    </div>
+  </div>
+  <!--**********************************
+          Nav header end (PageTitle)="setPageTitle($event)"
+      ***********************************-->
+
+  <jflweb-header [displaytitle]="PageTitleDisplay"></jflweb-header>
+  <jflweb-sidebar
+    [isRosterRunning]="isRosterScheduleIsRunning"
+    [Menu]="menus"
+    [isSelected]="isMenuSelected"
+  ></jflweb-sidebar>
+
+  <div class="content-body" [ngStyle]="{ 'min-height': minHeight }">
+    <div class="container-fluid">
+      <ng-content></ng-content>
+    </div>
+  </div>
+  <jflweb-footer></jflweb-footer>
+</div>
+<!--**********************************
+      Main wrapper end
+  ***********************************-->
