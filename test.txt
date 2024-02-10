@@ -1,78 +1,33 @@
 <!--**********************************
-        Main wrapper start
-    ***********************************-->
-<div
-  id="main-wrapper"
-  [ngClass]="{ 'menu-toggle': toggle }"
-  class="tp-container"
->
-  <!--**********************************
-          Nav header start
+          Header start
       ***********************************-->
-  <div class="nav-header">
-    <div class="row">
-      <div
-        class="col-5"
-        style="text-align: center; vertical-align: text-top; padding-top: 30px"
-      >
-        <div class="logo">
-          <a class="" href="#">
-            <img
-              src="assets/img/logot.png"
-              alt="logo"
-              class="img-fluid logo-abbr"
-              style="width: 40%; height: 40%"
-          /></a>
+<div class="header">
+  <div class="header-content">
+    <nav class="navbar navbar-expand">
+      <div class="collapse navbar-collapse justify-content-between">
+        <div class="header-left">
+          <div class="dashboard_bar">{{ displaytitle }}</div>
         </div>
+        <ul class="navbar-nav header-right">
+          <!-- <li class="nav-item">
+            <div class="input-group search-area d-lg-inline-flex d-none">
+              <div class="input-group-append">
+                <span class="input-group-text"
+                  ><a href="javascript:void(0)"
+                    ><i class="flaticon-381-search-2"></i></a
+                ></span>
+              </div>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search here..."
+              />
+            </div>
+          </li> -->
+          <!-- <jflweb-notifications></jflweb-notifications> -->
+          <jflweb-user [userDetails]="userData"></jflweb-user>
+        </ul>
       </div>
-      <div
-        class="col-7"
-        style="padding-top: 48px; text-align: left; padding-left: 0"
-      >
-        <span class="brand-title CompanyText" style="margin-left: 0"
-          >Manpower Planning</span
-        >
-      </div>
-    </div>
-
-    <!-- <i class="logo-abbr fa-brands fa-stumbleupon"></i>
-      <h2 class="brand-title">JFL</h2> -->
-    <!-- <a href="#" class="brand-logo">
-
-      <img
-        src="assets/img/logo.png"
-        class="img-fluid"
-        alt=""
-        style="width: 35.4px; height: 25.67px"
-      />
-
-      <span class="nav-text CompanyText">| Manpower Planning</span>
-    </a> -->
-    <div class="nav-control" (click)="toggleMenu()">
-      <div class="hamburger" [ngClass]="{ 'is-active': toggle }">
-        <span class="line"></span><span class="line"></span
-        ><span class="line"></span>
-      </div>
-    </div>
+    </nav>
   </div>
-  <!--**********************************
-          Nav header end (PageTitle)="setPageTitle($event)"
-      ***********************************-->
-
-  <jflweb-header [displaytitle]="PageTitleDisplay"></jflweb-header>
-  <jflweb-sidebar
-    [isRosterRunning]="isRosterScheduleIsRunning"
-    [Menu]="menus"
-    [isSelected]="isMenuSelected"
-  ></jflweb-sidebar>
-
-  <div class="content-body" [ngStyle]="{ 'min-height': minHeight }">
-    <div class="container-fluid">
-      <ng-content></ng-content>
-    </div>
-  </div>
-  <jflweb-footer></jflweb-footer>
 </div>
-<!--**********************************
-      Main wrapper end
-  ***********************************-->
