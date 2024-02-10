@@ -1,45 +1,37 @@
-this.menus.forEach((menu: IMenu) => {
-      let currentRoute = this.router.url;
-      if (currentRoute.indexOf('report') >= 0) {
-        menu.subMenus?.forEach((subMenu: IMenu) => {
-          menu.isActive = true;
-          if (subMenu.url.indexOf(currentRoute) >= 0) {
-            subMenu.isActive = true;
-            this.isMenuSelected = true;
-            this.PageTitleDisplay = subMenu.name;
-          } else {
-            subMenu.isActive = false;
-          }
-        });
-      } else if (menu.url.indexOf(currentRoute) >= 0) {
-        menu.isActive = true;
-        this.isMenuSelected = true;
-        this.PageTitleDisplay = menu.name;
-      } else {
-        menu.isActive = false;
-      }
-    });
-  }
-
-  ngOnInit(): void {
-    if (this.innerHeight > 0 ? this.innerHeight : screen.height) {
-      this.minHeight = this.innerHeight + 60 + 'px';
-      var contentBody = document.getElementsByClassName('.content-body');
-    }
-    this.checkIfRosterIsRunning();
-  }
-
-  setPageTitle(pageName: string) {
-    this.PageTitleDisplay = pageName;
-  }
-
-  checkIfRosterIsRunning() {
-    this.isRosterScheduleIsRunning = false;
-    this.dashboardService.checkIfRosterIsRunning().subscribe(
-      (response: boolean) => {
-        this.isRosterScheduleIsRunning = response;
-      },
-      (error: any) => {}
-    );
-  }
+.tp-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #eee;
+}
+.tp-section {
+  display: flex;
+  align-content: center;
+  align-items: center;
+  height: 60px;
+  width: 100px;
+}
+.CompanyText {
+  font-family: Lato;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 15px;
+  letter-spacing: 0px;
+  text-align: left;
+  color: #3157a3;
+  width: 114px;
+  height: 15px;
+}
+.float-left {
+  float: left !important;
+}
+.logo.float-left img {
+  zoom: 0.9;
+}
+a {
+  color: #007bff;
+  text-decoration: none;
+  background-color: transparent;
 }
