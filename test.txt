@@ -1,243 +1,79 @@
-var Fasto = (function () {
-  "use strict";
-  var screenWidth = $(window).width();
-
-  var handleMetisMenu = function () {
-    if (jQuery("#menu").length > 0) {
-      $("#menu").metisMenu();
-    }
-    jQuery(".metismenu > .mm-active ").each(function () {
-      if (!jQuery(this).children("ul").length > 0) {
-        jQuery(this).addClass("active-no-child");
-      }
-    });
-  };
-
-  var handleCurrentActive = function () {
-    for (
-      var nk = window.location,
-        o = $("ul#menu a")
-          .filter(function () {
-            return this.href == nk;
-          })
-          .addClass("mm-active")
-          .parent()
-          .addClass("mm-active");
-      ;
-
-    ) {
-      if (!o.is("li")) break;
-
-      o = o.parent().addClass("mm-show").parent().addClass("mm-active");
-    }
-  };
-
-  var handleMiniSidebar = function () {
-    $("ul#menu>li").on("click", function () {
-      const sidebarStyle = $("body").attr("data-sidebar-style");
-      if (sidebarStyle === "mini") {
-        //console.log($(this).find("ul"));
-        $(this).find("ul").stop();
-      }
-    });
-  };
-
-  var handleMinHeight = function () {
-    var win_h = window.outerHeight;
-    if (win_h > 0 ? win_h : screen.height) {
-      $(".content-body").css("min-height", win_h + 60 + "px");
-    }
-  };
-
-  var handleHeaderHight = function () {
-    const headerHight = $(".header").innerHeight();
-    $(window).scroll(function () {
-      if (
-        $("body").attr("data-layout") === "horizontal" &&
-        $("body").attr("data-header-position") === "static" &&
-        $("body").attr("data-sidebar-position") === "fixed"
-      )
-        $(this.window).scrollTop() >= headerHight
-          ? $(".deznav").addClass("fixed")
-          : $(".deznav").removeClass("fixed");
-    });
-  };
-
-  var handleDzScroll = function () {
-    jQuery(".dz-scroll").each(function () {
-      var scroolWidgetId = jQuery(this).attr("id");
-      const ps = new PerfectScrollbar("#" + scroolWidgetId, {
-        wheelSpeed: 2,
-        wheelPropagation: true,
-        minScrollbarLength: 20,
-      });
-      ps.isRtl = false;
-    });
-  };
-
-  var handleMenuTabs = function () {
-    if (screenWidth <= 991) {
-      jQuery(".menu-tabs .nav-link").on("click", function () {
-        if (jQuery(this).hasClass("open")) {
-          jQuery(this).removeClass("open");
-          jQuery(".fixed-content-box").removeClass("active");
-          jQuery(".hamburger").show();
-        } else {
-          jQuery(".menu-tabs .nav-link").removeClass("open");
-          jQuery(this).addClass("open");
-          jQuery(".fixed-content-box").addClass("active");
-          jQuery(".hamburger").hide();
-        }
-        //jQuery('.fixed-content-box').toggleClass('active');
-      });
-      jQuery(".close-fixed-content").on("click", function () {
-        jQuery(".fixed-content-box").removeClass("active");
-        jQuery(".hamburger").removeClass("is-active");
-        jQuery("#main-wrapper").removeClass("menu-toggle");
-        jQuery(".hamburger").show();
-      });
-    }
-  };
-
-  var handlePerfectScrollbar = function () {
-    if (jQuery(".deznav-scroll").length > 0) {
-      const qs = new PerfectScrollbar(".deznav-scroll");
-
-      qs.isRtl = false;
-    }
-  };
-
-  var handleMenuPosition = function () {
-    if (screenWidth > 1024) {
-      $(".metismenu  li")
-        .unbind()
-        .each(function (e) {
-          if ($("ul", this).length > 0) {
-            var elm = $("ul:first", this).css("display", "block");
-
-            var off = elm.offset();
-            var l = off.left;
-            var w = elm.width();
-            var elm = $("ul:first", this).removeAttr("style");
-            var docH = $("body").height();
-            var docW = $("body").width();
-
-            if (jQuery("html").hasClass("rtl")) {
-              var isEntirelyVisible = l + w <= docW;
-            } else {
-              var isEntirelyVisible = l > 0 ? true : false;
-            }
-
-            if (!isEntirelyVisible) {
-              $(this).find("ul:first").addClass("left");
-            } else {
-              $(this).find("ul:first").removeClass("left");
-            }
-          }
-        });
-    }
-  };
-
-  // var handleSupport = function () {
-  //   var support =
-  //     '<script id="DZScript" src="../../dzassets.s3.amazonaws.com/w3-global8bb6.js?btn_dir=right"></script>';
-  //   jQuery("body").append(support);
-  // };
-
-  /* Function ============ */
-  return {
-    init: function () {
-      //console.log("init called");
-      handleMetisMenu();
-      handleCurrentActive();
-      handleMiniSidebar();
-      handleMinHeight();
-      handleHeaderHight();
-      handleDzScroll();
-      handleMenuTabs();
-      handlePerfectScrollbar();
-    },
-
-    load: function () {
-      //handleTheme();
-      //handleSelectPicker();
-      //handleImageSelect();
-      //handleSupport();
-    },
-
-    handleMenuPosition: function () {
-      handleMenuPosition();
-    },
-  };
-})();
-
-/* Document.ready Start */
-jQuery(document).ready(function () {
-  $('[data-toggle="popover"]').popover();
-  ("use strict");
-  Fasto.init();
-  var popoverTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="popover"]')
-  );
-  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-    return new bootstrap.Popover(popoverTriggerEl);
-  });
-});
-
-/* Document.ready END */
-var CallCustomJsInitLoad = function () {
-  $('[data-toggle="popover"]').popover();
-  ("use strict");
-  Fasto.load();
-  Fasto.init();
-  setTimeout(function () {
-    Fasto.handleMenuPosition();
-  }, 1000);
-  var popoverTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="popover"]')
-  );
-  var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-    return new bootstrap.Popover(popoverTriggerEl);
-  });
-};
-
-/* Window Load START */
-jQuery(window).on("load", function () {
-  "use strict";
-  Fasto.load();
-  setTimeout(function () {
-    Fasto.handleMenuPosition();
-  }, 1000);
-});
-
-/*  Window Load END */
-
-/* Window Resize START */
-// jQuery(window).on("resize", function () {
-//   "use strict";
-//   // Fasto.resize();
-//   setTimeout(function () {
-//     Fasto.handleMenuPosition();
-//   }, 1000);
-// });
-/*  Window Resize END */
-
-//cunt//
-
-$(".count").each(function () {
-  $(this)
-    .prop("Counter", 0)
-    .animate(
-      {
-        Counter: $(this).text(),
-      },
-      {
-        duration: 4000,
-        easing: "swing",
-        step: function (now) {
-          now = Number(Math.ceil(now)).toLocaleString("en");
-          $(this).text(now);
-        },
-      }
-    );
-});
+<!--**********************************
+          Sidebar start
+      ***********************************-->
+<div class="deznav">
+  <div class="deznav-scroll" [ngClass]="{ 'mm-active': isSelected }">
+    <!-- <a
+      class="add-project-sidebar btn btn-primary"
+      href="javascript:void(0)"
+      data-bs-toggle="modal"
+      data-bs-target="#addProjectSidebar"
+      >+ New Schedule</a  (click)="AssignPageHeader(menu.name)"
+    > -->
+    <ul class="metismenu" id="menu" [ngClass]="{ 'mm-show': isSelected }">
+      <li
+        *ngFor="let menu of Menu"
+        [ngClass]="{ 'mm-active': menu.isActive }"
+        style="padding: 5px 5px"
+      >
+        <a
+          href="#"
+          routerLinkActive="active"
+          [routerLink]="menu.url"
+          [ngClass]="{ 'mm-active': menu.isActive }"
+          style="padding: 5px 20px"
+          (click)="onLinkClickCheckIfReport(menu)"
+          title="{{ menu.name }}"
+        >
+          <i class="{{ menu.icon }}"></i>
+          <span class="nav-text">{{ menu.name }}</span>
+        </a>
+        <ul
+          class="metismenu"
+          id="submenu"
+          [ngClass]="{ 'mm-show': isSelected }"
+          *ngIf="menu.subMenus && isSelected"
+        >
+          <li
+            *ngFor="let submenu of menu.subMenus"
+            [ngClass]="{ 'mm-active': submenu.isActive }"
+            style="padding: 5px 5px"
+          >
+            <a
+              href="#"
+              routerLinkActive="active"
+              [routerLink]="submenu.url"
+              [ngClass]="{ 'mm-active': submenu.isActive }"
+              style="padding: 5px 20px"
+              title="{{ submenu.name }}"
+            >
+              <i class="{{ submenu.icon }}"></i>
+              <span class="nav-text">{{ submenu.name }}</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+      <!-- <li>
+        <a href="#">
+          <i class="flaticon-contract"></i>
+          <span class="nav-text">Forms</span>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <i class="flaticon-table"></i>
+          <span class="nav-text">Table</span>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <i class="flaticon-newsletter"></i>
+          <span class="nav-text">Pages</span>
+        </a>
+      </li> -->
+    </ul>
+  </div>
+</div>
+<!--**********************************
+        Sidebar end
+    ***********************************-->
