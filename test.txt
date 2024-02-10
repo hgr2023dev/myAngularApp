@@ -1,79 +1,45 @@
-<!--**********************************
-          Sidebar start
-      ***********************************-->
-<div class="deznav">
-  <div class="deznav-scroll" [ngClass]="{ 'mm-active': isSelected }">
-    <!-- <a
-      class="add-project-sidebar btn btn-primary"
-      href="javascript:void(0)"
-      data-bs-toggle="modal"
-      data-bs-target="#addProjectSidebar"
-      >+ New Schedule</a  (click)="AssignPageHeader(menu.name)"
-    > -->
-    <ul class="metismenu" id="menu" [ngClass]="{ 'mm-show': isSelected }">
-      <li
-        *ngFor="let menu of Menu"
-        [ngClass]="{ 'mm-active': menu.isActive }"
-        style="padding: 5px 5px"
-      >
-        <a
-          href="#"
-          routerLinkActive="active"
-          [routerLink]="menu.url"
-          [ngClass]="{ 'mm-active': menu.isActive }"
-          style="padding: 5px 20px"
-          (click)="onLinkClickCheckIfReport(menu)"
-          title="{{ menu.name }}"
-        >
-          <i class="{{ menu.icon }}"></i>
-          <span class="nav-text">{{ menu.name }}</span>
-        </a>
-        <ul
-          class="metismenu"
-          id="submenu"
-          [ngClass]="{ 'mm-show': isSelected }"
-          *ngIf="menu.subMenus && isSelected"
-        >
-          <li
-            *ngFor="let submenu of menu.subMenus"
-            [ngClass]="{ 'mm-active': submenu.isActive }"
-            style="padding: 5px 5px"
-          >
-            <a
-              href="#"
-              routerLinkActive="active"
-              [routerLink]="submenu.url"
-              [ngClass]="{ 'mm-active': submenu.isActive }"
-              style="padding: 5px 20px"
-              title="{{ submenu.name }}"
-            >
-              <i class="{{ submenu.icon }}"></i>
-              <span class="nav-text">{{ submenu.name }}</span>
-            </a>
-          </li>
-        </ul>
-      </li>
-      <!-- <li>
-        <a href="#">
-          <i class="flaticon-contract"></i>
-          <span class="nav-text">Forms</span>
-        </a>
-      </li>
-      <li>
-        <a href="#">
-          <i class="flaticon-table"></i>
-          <span class="nav-text">Table</span>
-        </a>
-      </li>
-      <li>
-        <a href="#">
-          <i class="flaticon-newsletter"></i>
-          <span class="nav-text">Pages</span>
-        </a>
-      </li> -->
-    </ul>
-  </div>
-</div>
-<!--**********************************
-        Sidebar end
-    ***********************************-->
+this.menus.forEach((menu: IMenu) => {
+      let currentRoute = this.router.url;
+      if (currentRoute.indexOf('report') >= 0) {
+        menu.subMenus?.forEach((subMenu: IMenu) => {
+          menu.isActive = true;
+          if (subMenu.url.indexOf(currentRoute) >= 0) {
+            subMenu.isActive = true;
+            this.isMenuSelected = true;
+            this.PageTitleDisplay = subMenu.name;
+          } else {
+            subMenu.isActive = false;
+          }
+        });
+      } else if (menu.url.indexOf(currentRoute) >= 0) {
+        menu.isActive = true;
+        this.isMenuSelected = true;
+        this.PageTitleDisplay = menu.name;
+      } else {
+        menu.isActive = false;
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    if (this.innerHeight > 0 ? this.innerHeight : screen.height) {
+      this.minHeight = this.innerHeight + 60 + 'px';
+      var contentBody = document.getElementsByClassName('.content-body');
+    }
+    this.checkIfRosterIsRunning();
+  }
+
+  setPageTitle(pageName: string) {
+    this.PageTitleDisplay = pageName;
+  }
+
+  checkIfRosterIsRunning() {
+    this.isRosterScheduleIsRunning = false;
+    this.dashboardService.checkIfRosterIsRunning().subscribe(
+      (response: boolean) => {
+        this.isRosterScheduleIsRunning = response;
+      },
+      (error: any) => {}
+    );
+  }
+}
