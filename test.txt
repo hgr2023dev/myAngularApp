@@ -1,390 +1,62 @@
-core==>services==>Base
-
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import {
-  Observable,
-  of,
-  throwError,
-  catchError,
-  map,
-  tap,
-  finalize,
-  retry,
-} from 'rxjs';
-import { AppVariables } from '../classes/app-variables';
-import { IServerResponse } from '../interfaces/server-response';
-import { IError } from '../interfaces/error';
-import { HandleErrorService } from './error-handling/handle-error.service';
-
-export interface IRequestOptions {
-  headers?: HttpHeaders;
-  observe?: 'body';
-  params?: HttpParams;
-  reportProgress?: boolean;
-  responseType?: 'json';
-  withCredentials?: boolean;
-  body?: any;
-  addContentTypeHeader: boolean;
-}
-
-export function applicationHttpClientCreator(
-  http: HttpClient,
-  handleError: HandleErrorService,
-  activatedRoute: ActivatedRoute
-) {
-  return new ApplicationHttpClient(http, handleError, activatedRoute);
-}
-@Injectable({
-  providedIn: 'root',
-})
-export class ApplicationHttpClient {
-  private appVars: AppVariables;
-  constructor(
-    public http: HttpClient,
-    private handleError: HandleErrorService,
-    private activatedRoute: ActivatedRoute
-  ) {
-    //console.log('Base Service Called');
-    this.appVars = new AppVariables(activatedRoute);
-  }
-
-  getDownload<T>(url: string): any {
-    //console.log('Calling url: ' + this.appVars.apiConfig.baseURL + url);
-    return this.http.get(this.appVars.apiConfig.baseURL + url, {
-      reportProgress: true,
-      observe: 'events',
-      responseType: 'blob',
-    });
-  }
-
-  get<T>(url: string, options?: IRequestOptions): any {
-    //console.log('Calling url: ' + this.appVars.apiConfig.baseURL + url);
-    var t = this.http
-      .get<IServerResponse>(this.appVars.apiConfig.baseURL + url, options)
-      .pipe(
-        map((res: IServerResponse) => {
-          return this.handleResponse<T>(res);
-        }),
-        retry(4),
-        catchError((error: any) =>
-          of(throwError(this.handleError.handleError(error)))
-        ),
-        finalize(() => {
-          //console.log('Finalise Get Method');
-        })
-      );
-    return t;
-  }
-
-  getJson<T>(url: string, options?: IRequestOptions): any {
-    var t = this.http
-      .get<IServerResponse>(this.appVars.apiConfig.baseURL + url, options)
-      .pipe(
-        map((res: IServerResponse) => {
-          return res.responseData.json();
-        }),
-        catchError((error: any) =>
-          of(throwError(this.handleError.handleError(error)))
-        ),
-        finalize(() => {
-          //console.log('finalise get Json');
-        })
-      );
-    return t;
-  }
-
-  post<T>(url: string, postBody: any, options?: IRequestOptions): any {
-    //console.log('Calling url: ' + this.appVars.apiConfig.baseURL + url);
-    if (options) {
-      return this.http
-        .post<IServerResponse>(
-          this.appVars.apiConfig.baseURL + url,
-          postBody,
-          options
-        )
-        .pipe(
-          map((res: IServerResponse) => {
-            return this.handleResponse<T>(res);
-          }),
-          retry(4),
-          catchError((error: any) =>
-            throwError(this.handleError.handleError(error))
-          ),
-          finalize(() => {
-            //console.log('finalize post method');
-          })
-        );
-    } else {
-      return this.http
-        .post<IServerResponse>(this.appVars.apiConfig.baseURL + url, postBody)
-        .pipe(
-          map((res: IServerResponse) => {
-            return this.handleResponse<T>(res);
-          }),
-          catchError((error: any) =>
-            throwError(this.handleError.handleError(error))
-          ),
-          finalize(() => {
-            //console.log('finalize post else method');
-          })
-        );
-    }
-  }
-  // Observable<T>
-  postObservable<T>(
-    url: string,
-    postBody: any,
-    options?: IRequestOptions
-  ): Observable<T> {
-    //console.log('Calling url: ' + this.appVars.apiConfig.baseURL + url);
-    if (options) {
-      return this.http
-        .post<IServerResponse>(
-          this.appVars.apiConfig.baseURL + url,
-          postBody,
-          options
-        )
-        .pipe(
-          map((res: IServerResponse) => {
-            return this.handleResponse<T>(res);
-          }),
-          retry(4),
-          catchError((error: any) =>
-            throwError(this.handleError.handleError(error))
-          ),
-          finalize(() => {
-            //console.log('finalize post Observable method');
-          })
-        );
-    } else {
-      return this.http
-        .post<IServerResponse>(this.appVars.apiConfig.baseURL + url, postBody)
-        .pipe(
-          map((res: IServerResponse) => {
-            return this.handleResponse<T>(res);
-          }),
-          retry(4),
-          catchError((error: any) =>
-            throwError(this.handleError.handleError(error))
-          ),
-          finalize(() => {
-            //console.log('finalize post Observable else method');
-          })
-        );
-    }
-  }
-
-  delete(url: string, postBody: any, options?: IRequestOptions) {
-    return this.http
-      .delete<IServerResponse>(this.appVars.apiConfig.baseURL + url)
-      .pipe(
-        map((res: IServerResponse) => {
-          return this.handleResponse(res);
-        }),
-        retry(4),
-        catchError((error: any) =>
-          throwError(this.handleError.handleError(error))
-        ),
-        finalize(() => {
-          //console.log('finalize delete method');
-        })
-      );
-  }
-
-  put(url: string, putData: any, options?: IRequestOptions) {
-    return this.http
-      .put<IServerResponse>(this.appVars.apiConfig.baseURL + url, putData)
-      .pipe(
-        map((res: IServerResponse) => {
-          return this.handleResponse(res);
-        }),
-        retry(4),
-        catchError((error: any) =>
-          throwError(this.handleError.handleError(error))
-        ),
-        finalize(() => {
-          //console.log('finalize put method');
-        })
-      );
-  }
-
-  upload(url: string, file: File) {
-    const formData: FormData = new FormData();
-    if (file) {
-      formData.append('files', file, file.name);
-    }
-    return this.post(this.appVars.apiConfig.baseURL + url, formData);
-  }
-
-  formUrlParam(url: string, data: any) {
-    let queryString: string = '';
-    for (const key in data) {
-      if (data.hasOwnProperty(key)) {
-        if (!queryString) {
-          queryString = `?${key}=${data[key]}`;
-        } else {
-          queryString += `&${key}=${data[key]}`;
-        }
-      }
-    }
-    return this.appVars.apiConfig.baseURL + url + queryString;
-  }
-
-  handleResponse<T>(res: IServerResponse): any {
-    var data = res;
-    if (
-      data.code == 2 ||
-      data.code == 5 ||
-      data.code == 4 ||
-      data.code == 3 ||
-      data.code == 7 ||
-      data.code == 6
-    ) {
-      const successData: IError = {
-        error: data.responseData,
-        title: data.message,
-      };
-      switch (Number(data.code)) {
-        case 6:
-        case 5:
-          this.handleError.showSuccess(successData);
-          break;
-        default:
-          this.handleError.parseCustomServerErrorToString(successData);
-          break;
-      }
-      return data;
-    } else {
-      AppVariables.message = data.message;
-      return data;
-    }
-  }
-}
-------------------------------------------------------------
-core==>services==>BaseProxy
-
-import { Injectable } from '@angular/core';
-import { ApplicationHttpClient, IRequestOptions } from './base.service';
-import { AppVariables } from '../classes/app-variables';
-import { ActivatedRoute } from '@angular/router';
-import { HttpHeaders } from '@angular/common/http';
+import { Injectable, OnInit } from '@angular/core';
+import { ToastConfig } from '../../interfaces/toast-config';
+import { Observable } from 'rxjs';
+import { ToastrService } from 'ngx-toastr';
 
 @Injectable({
   providedIn: 'root',
 })
-export class BaseProxyService {
-  public http: ApplicationHttpClient;
-  public appVars: AppVariables;
-  public options: IRequestOptions;
-
-  constructor(
-    public httpService: ApplicationHttpClient,
-    public activatedRoute: ActivatedRoute
-  ) {
-    this.http = this.httpService;
-    this.appVars = new AppVariables(activatedRoute);
-    this.setOptions();
-  }
-
-  setOptions() {
-    this.options = {
-      addContentTypeHeader: true,
-      headers: new HttpHeaders(),
+export class NotificationService implements OnInit {
+  public toastConfig: ToastConfig;
+  confirmBox: Observable<any>;
+  constructor(public snotifyService: ToastrService) {
+    this.toastConfig = {
+      title: 'Snotify title',
+      body: 'Lorem ipsum dolor sit',
+      timeout: 3000,
+      position: 'toast-top-right',
+      progressBar: true,
+      closeClick: true,
+      newTop: true,
+      backdrop: -1,
+      dockMax: 6,
+      pauseHover: true,
+      maxHeight: 300,
+      titleMaxLength: 15,
+      bodyMaxLength: 80,
     };
   }
-}
---------------------------------------------------
-
-export class OperationsService extends BaseProxyService {
-  constructor(
-    private router: Router,
-    private subscriptionService: SubscriptionService,
-    activatedRoute: ActivatedRoute,
-    httpService: ApplicationHttpClient,
-    private toastr: ToastrService
-  ) {
-    super(httpService, activatedRoute);
+  ngOnInit(): void {
+    // this.snotifyService.toastrConfig(
+    //   {
+    //     timeout: 3000,
+    //     titleMaxLength: 14,
+    //     bodyMaxLength: 40,
+    //   },
+    //   {
+    //     newOnTop: false,
+    //     position: this.toastConfig.position,
+    //     maxHeight: 500,
+    //   }
+    // );
   }
 
-downloadRosterFileCSV(
-    rsId: number,
-    dutyRoster: string,
-    includeMaster: boolean
-  ) {
-    return this.http.getDownload(
-      this.appVars.apiConfig.downloadRosterFileAsCSV +
-        '?rsId=' +
-        rsId +
-        '&dutyRoster=' +
-        dutyRoster +
-        '&mstr=' +
-        includeMaster
-    );
-  }
----------------------------------------------------
-import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { IError } from '../../interfaces/error';
-import { NotificationService } from '../notification/notification.service';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class HandleErrorService {
-  constructor(private notifyService: NotificationService) {}
-
-  public handleError(err: HttpErrorResponse) {
-    console.error(
-      'Error: ' + err.error.message + ' - ' + err.error.responseData
-    );
-    let errorMessage: string;
-    if (err.error instanceof ErrorEvent) {
-      errorMessage = `An error occurred: ${err.error.message}`;
-    } else {
-      switch (err.status) {
-        case 400:
-          errorMessage = `${err.status}: Bad Request.`;
-          break;
-        case 401:
-          errorMessage = `${err.status}: You are unauthorized to do this action.`;
-          break;
-        case 403:
-          errorMessage = `${err.status}: You don't have permission to access the requested resource.`;
-          break;
-        case 404:
-          errorMessage = `${err.status}: The requested resource does not exist.`;
-          break;
-        case 412:
-          errorMessage = `${err.status}: Precondition Failed.`;
-          break;
-        case 500:
-          errorMessage = `${err.status}: Internal Server Error.`;
-          break;
-        case 503:
-          errorMessage = `${err.status}: The requested service is not available.`;
-          break;
-        default:
-          errorMessage = `Something Went Wrong`;
-      }
-    }
-    if (!(err.error?.message?.indexOf('transient failure') == 0)) {
-      this.notifyService.showError(err.error.responseData, errorMessage);
-    }
+  showSuccess(message: string, title: string) {
+    this.snotifyService.success(message, title);
   }
 
-  parseCustomServerErrorToString(error: IError): void {
-    this.showToast(error);
-  }
-  showToast(error: IError) {
-    this.notifyService.clear();
-    this.notifyService.showError(error.error, error.title);
+  showError(message: string, title: string) {
+    this.snotifyService.error(message, title);
   }
 
-  showSuccess(error: IError) {
-    this.notifyService.clear();
-    this.notifyService.showSuccess(error.error, error.title);
+  showInfo(message: string, title: string) {
+    this.snotifyService.info(message, title);
+  }
+
+  showWarning(message: string, title: string) {
+    this.snotifyService.warning(message, title);
+  }
+  clear() {
+    this.snotifyService.clear();
   }
 }
-------------------------------------------
