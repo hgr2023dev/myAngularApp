@@ -4,93 +4,41 @@ import {
   HttpHandler,
   HttpEvent,
   HttpInterceptor,
+  HttpResponse,
   HttpErrorResponse,
 } from '@angular/common/http';
-import {
-  BehaviorSubject,
-  Observable,
-  catchError,
-  filter,
-  switchMap,
-  take,
-  throwError,
-} from 'rxjs';
+import { Observable } from 'rxjs';
+import { HandleErrorService } from '../services/error-handling/handle-error.service';
+import { SpinnerInterceptor } from './spinner.interceptor';
+import { NgxSpinnerService } from 'ngx-spinner';
 
 @Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  private isRefreshing = false;
-  private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(
-    null
-  );
-  global: any;
+export class HandleErrorInterceptor implements HttpInterceptor {
+  constructor(
+    private error: HandleErrorService,
+    private spinner: NgxSpinnerService
+  ) {}
 
-  constructor() {}
-
-  intercept(
+  public intercept(
     request: HttpRequest<any>,
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
-    const headerToken = localStorage.getItem('authToken');
-    if (!request.headers.has('Content-Type')) {
-      if (request.url.includes('UploadFilesForRosterProcess')) {
-        request = request.clone({
-          // headers: request.headers.set('Content-Type', 'multipart/form-data'),
-        });
-      } else {
-        request = request.clone({
-          headers: request.headers.set('Content-Type', 'application/json'),
-        });
-      }
-    }
-
-    if (headerToken) {
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${headerToken}`,
+    return new Observable((observer) => {
+      next.handle(request).subscribe(
+        //success
+        (res: HttpEvent<any>) => {
+          if (res instanceof HttpResponse) {
+            observer.next(res);
+          } else if (res instanceof HttpErrorResponse) {
+            this.error.handleError(res);
+          }
         },
-        withCredentials: true,
-      });
-    }
-
-    return next.handle(request).pipe(
-      catchError((error) => {
-        if (error instanceof HttpErrorResponse && error.status === 401) {
-          return this.handle401Error(request, next);
-        } else {
-          return throwError(error);
+        (err: HttpErrorResponse) => {
+          //Handling Errors
+          this.spinner.hide();
+          this.error.handleError(err);
         }
-      })
-    ) as Observable<HttpEvent<any>>;
-  }
-  private addToken(request: HttpRequest<any>, token: string) {
-    return request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`,
-      },
+      );
     });
-  }
-
-  private handle401Error(request: HttpRequest<any>, next: HttpHandler) {
-    if (!this.isRefreshing) {
-      this.isRefreshing = true;
-      this.refreshTokenSubject.next(null);
-
-      return this.global.refreshToken().pipe(
-        switchMap((data: any) => {
-          //console.log('switchMap:' + data.data);
-          this.isRefreshing = false;
-          this.refreshTokenSubject.next(data.data.token);
-          return next.handle(this.addToken(request, data.data.token));
-        })
-      );
-    } else {
-      return this.refreshTokenSubject.pipe(
-        filter((data) => data != null),
-        take(1),
-        switchMap((res) => {
-          return next.handle(this.addToken(request, res));
-        })
-      );
-    }
   }
 }
