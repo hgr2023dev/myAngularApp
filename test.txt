@@ -1,62 +1,96 @@
-import { Injectable, OnInit } from '@angular/core';
-import { ToastConfig } from '../../interfaces/toast-config';
-import { Observable } from 'rxjs';
-import { ToastrService } from 'ngx-toastr';
+import { Injectable } from '@angular/core';
+import {
+  HttpRequest,
+  HttpHandler,
+  HttpEvent,
+  HttpInterceptor,
+  HttpErrorResponse,
+} from '@angular/common/http';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  filter,
+  switchMap,
+  take,
+  throwError,
+} from 'rxjs';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class NotificationService implements OnInit {
-  public toastConfig: ToastConfig;
-  confirmBox: Observable<any>;
-  constructor(public snotifyService: ToastrService) {
-    this.toastConfig = {
-      title: 'Snotify title',
-      body: 'Lorem ipsum dolor sit',
-      timeout: 3000,
-      position: 'toast-top-right',
-      progressBar: true,
-      closeClick: true,
-      newTop: true,
-      backdrop: -1,
-      dockMax: 6,
-      pauseHover: true,
-      maxHeight: 300,
-      titleMaxLength: 15,
-      bodyMaxLength: 80,
-    };
+@Injectable()
+export class AuthInterceptor implements HttpInterceptor {
+  private isRefreshing = false;
+  private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(
+    null
+  );
+  global: any;
+
+  constructor() {}
+
+  intercept(
+    request: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
+    const headerToken = localStorage.getItem('authToken');
+    if (!request.headers.has('Content-Type')) {
+      if (request.url.includes('UploadFilesForRosterProcess')) {
+        request = request.clone({
+          // headers: request.headers.set('Content-Type', 'multipart/form-data'),
+        });
+      } else {
+        request = request.clone({
+          headers: request.headers.set('Content-Type', 'application/json'),
+        });
+      }
+    }
+
+    if (headerToken) {
+      request = request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${headerToken}`,
+        },
+        withCredentials: true,
+      });
+    }
+
+    return next.handle(request).pipe(
+      catchError((error) => {
+        if (error instanceof HttpErrorResponse && error.status === 401) {
+          return this.handle401Error(request, next);
+        } else {
+          return throwError(error);
+        }
+      })
+    ) as Observable<HttpEvent<any>>;
   }
-  ngOnInit(): void {
-    // this.snotifyService.toastrConfig(
-    //   {
-    //     timeout: 3000,
-    //     titleMaxLength: 14,
-    //     bodyMaxLength: 40,
-    //   },
-    //   {
-    //     newOnTop: false,
-    //     position: this.toastConfig.position,
-    //     maxHeight: 500,
-    //   }
-    // );
+  private addToken(request: HttpRequest<any>, token: string) {
+    return request.clone({
+      setHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
   }
 
-  showSuccess(message: string, title: string) {
-    this.snotifyService.success(message, title);
-  }
+  private handle401Error(request: HttpRequest<any>, next: HttpHandler) {
+    if (!this.isRefreshing) {
+      this.isRefreshing = true;
+      this.refreshTokenSubject.next(null);
 
-  showError(message: string, title: string) {
-    this.snotifyService.error(message, title);
-  }
-
-  showInfo(message: string, title: string) {
-    this.snotifyService.info(message, title);
-  }
-
-  showWarning(message: string, title: string) {
-    this.snotifyService.warning(message, title);
-  }
-  clear() {
-    this.snotifyService.clear();
+      return this.global.refreshToken().pipe(
+        switchMap((data: any) => {
+          //console.log('switchMap:' + data.data);
+          this.isRefreshing = false;
+          this.refreshTokenSubject.next(data.data.token);
+          return next.handle(this.addToken(request, data.data.token));
+        })
+      );
+    } else {
+      return this.refreshTokenSubject.pipe(
+        filter((data) => data != null),
+        take(1),
+        switchMap((res) => {
+          return next.handle(this.addToken(request, res));
+        })
+      );
+    }
   }
 }
