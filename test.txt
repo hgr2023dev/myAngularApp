@@ -1,23 +1,6 @@
-var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]!));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, userInfo.UserName),
-                new Claim("userid", userInfo.UserID.ToString(CultureInfo.InvariantCulture)),
-                new Claim("Roleid", userInfo.RoleId.ToString(CultureInfo.InvariantCulture)),
-                new Claim(ClaimTypes.Role,userInfo.RoleName.ToString(CultureInfo.InvariantCulture)),
-                new Claim(ClaimTypes.Email, userInfo.UserEmail.ToString(CultureInfo.InvariantCulture)),
-                new Claim("Role", userInfo.RoleName.ToString(CultureInfo.InvariantCulture)),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(60),
-                signingCredentials: credentials
-            );
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
+ "Jwt": {
+    // The key must have a minimum length of 16 characters.
+    "SecretKey": "KqcL7s998JrfFHRPlkfdskfdksjfadlsf;dasfdskafsakdlfjskdioerrekdfgjfd",
+    "Issuer": "https://localhost:44339/",
+    "Audience": "https://localhost:44339/"
+  },
