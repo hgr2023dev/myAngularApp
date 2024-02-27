@@ -1,57 +1,23 @@
-import { catchError, finalize, tap } from 'rxjs/operators';
-import { Injectable, Renderer2, RendererFactory2 } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor,
-  HttpResponse,
-} from '@angular/common/http';
-import { Observable, Subscription } from 'rxjs';
-import { NgxSpinnerService } from 'ngx-spinner';
+var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]!));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-const bodyScrollClass: string = 'loaderBodyScrollFix';
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, userInfo.UserName),
+                new Claim("userid", userInfo.UserID.ToString(CultureInfo.InvariantCulture)),
+                new Claim("Roleid", userInfo.RoleId.ToString(CultureInfo.InvariantCulture)),
+                new Claim(ClaimTypes.Role,userInfo.RoleName.ToString(CultureInfo.InvariantCulture)),
+                new Claim(ClaimTypes.Email, userInfo.UserEmail.ToString(CultureInfo.InvariantCulture)),
+                new Claim("Role", userInfo.RoleName.ToString(CultureInfo.InvariantCulture)),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            };
 
-@Injectable()
-export class SpinnerInterceptor implements HttpInterceptor {
-  private renderer: Renderer2;
-  constructor(
-    private spinner: NgxSpinnerService,
-    private rendererFactory: RendererFactory2
-  ) {
-    this.renderer = rendererFactory.createRenderer(null, null);
-  }
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(60),
+                signingCredentials: credentials
+            );
 
-  intercept(
-    request: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
-    const start = performance.now();
-    this.showLoader();
-    return next.handle(request).pipe(
-      tap(
-        async (event: HttpEvent<any>) => {
-          if (event instanceof HttpResponse) {
-            this.onEnd();
-          }
-        },
-        (err: any) => {
-          this.onEnd();
-        }
-      )
-    );
-  }
-
-  private onEnd(): void {
-    this.hideLoader();
-  }
-  private showLoader(): void {
-    this.spinner.show();
-  }
-  private hideLoader(): void {
-    this.spinner.hide();
-  }
-  public hideLoaderIfErrorOccured(): void {
-    this.spinner.hide();
-  }
-}
+            return new JwtSecurityTokenHandler().WriteToken(token);
